@@ -10,8 +10,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:random_color_flutter/main.dart';
 
 void main() {
-  testWidgets('Verify initial text and background tap logic', 
-  (WidgetTester tester) async {
+  testWidgets('Verify initial text and background tap logic', (
+    WidgetTester tester,
+  ) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const Main());
 
