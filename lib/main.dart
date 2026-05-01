@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const Main());
 }
-const bool _debugMode = false;
 ///Root widget of the application
-class MyApp extends StatelessWidget {
+class Main extends StatelessWidget {
   ///Creates MyApp instance
-  const MyApp({super.key});
+  const Main({super.key});
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
       home: MyHomePage(title: 'Random color generator'),
-      debugShowCheckedModeBanner: _debugMode,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -29,6 +28,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Color _backgroundColor = Colors.blue;
   final int _numberOfCharacters = 6;
+  final double _luminanceTreshhold = 0.5;
   final List<Color> _colorHistory = [];
   final List<String> _availableCharacters = 
   ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -68,8 +68,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
                   itemCount: _colorHistory.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return _buildHistoryBox(_colorHistory[index]);
+                  itemBuilder: (_, index) {
+                    return _HistoryBox(
+                      color: _colorHistory[index], 
+                      borderColor: _getSecondaryColor());
                   },
                 ),
               ),
@@ -98,45 +100,19 @@ class _MyHomePageState extends State<MyHomePage> {
       _colorHistory.add(_backgroundColor);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients)
-        {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent, 
-            duration: const Duration(milliseconds: 300), 
-            curve: Curves.easeInOut
-            );
-        }
+        if (!_scrollController.hasClients) return;
+
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent, 
+          duration: const Duration(milliseconds: 300), 
+          curve: Curves.easeInOut
+          );
       });
-
-      if (!_debugMode){
-        return;
-      }
-
-      for (var i = 0; i < _colorHistory.length; i++) {
-        debugPrint(_colorHistory[i].toARGB32().toString());
-      }
     });
   }
 
-  Widget _buildHistoryBox(Color color){
-    return Container(
-      width: 70,
-      margin: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: color,
-        border: Border.all(color: _getSecondaryColor()),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [BoxShadow(
-          color: Colors.black.withAlpha(150),
-          blurRadius: 4,
-          offset: const Offset(0, 2)
-        )]
-      ),
-    );
-  }
-
   Color _getSecondaryColor(){
-    return _backgroundColor.computeLuminance() > 0.5 ?
+    return _backgroundColor.computeLuminance() > _luminanceTreshhold ?
      Colors.black : Colors.white;
   }
 
@@ -145,5 +121,33 @@ class _MyHomePageState extends State<MyHomePage> {
   {
     _scrollController.dispose();
     super.dispose();
+  }
+}
+
+class _HistoryBox extends StatelessWidget {
+  const _HistoryBox({
+    required this.color,
+    required this.borderColor
+  });
+
+  final Color color;
+  final Color borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 70,
+      margin: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: color,
+        border: Border.all(color: borderColor),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [BoxShadow(
+          color: Colors.black.withAlpha(150),
+          blurRadius: 4,
+          offset: const Offset(0, 2)
+        )]
+      ),
+    );
   }
 }
